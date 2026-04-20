@@ -176,7 +176,8 @@ export async function GET(req: NextRequest) {
     response.cookies.delete('meta_oauth_state')
     return response
   } catch (err) {
-    console.error('Meta OAuth callback error:', err)
-    return NextResponse.redirect(`${APP_URL}/accounts?error=oauth_failed`)
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('Meta OAuth callback error:', msg)
+    return NextResponse.redirect(`${APP_URL}/accounts?error=oauth_failed&detail=${encodeURIComponent(msg.slice(0, 200))}`)
   }
 }
