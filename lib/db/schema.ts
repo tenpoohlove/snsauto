@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, boolean, timestamp, integer, real } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, boolean, timestamp, integer, real, unique } from 'drizzle-orm/pg-core'
 
 export const socialAccounts = pgTable('social_accounts', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -10,7 +10,7 @@ export const socialAccounts = pgTable('social_accounts', {
   tokenExpiresAt: timestamp('token_expires_at', { withTimezone: true }),
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
-})
+}, (t) => [unique('uq_social_accounts_user_account').on(t.userId, t.accountId)])
 
 export const researchSessions = pgTable('research_sessions', {
   id: uuid('id').primaryKey().defaultRandom(),
