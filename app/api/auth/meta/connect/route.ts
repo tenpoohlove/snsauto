@@ -11,10 +11,10 @@ export async function GET(req: NextRequest) {
   const { userId } = await auth()
   if (!userId) return new NextResponse('Unauthorized', { status: 401 })
 
-  const appId = process.env.INSTAGRAM_APP_ID
+  const appId = process.env.INSTAGRAM_APP_ID?.trim()
   if (!appId) return new NextResponse('Meta App ID not configured', { status: 500 })
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3001'
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3001').trim()
   const redirectUri = `${appUrl}/api/auth/meta/callback`
 
   // CSRF protection via state param

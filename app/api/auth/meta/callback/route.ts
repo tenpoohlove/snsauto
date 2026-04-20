@@ -4,7 +4,7 @@ import { db } from '@/lib/db'
 import { socialAccounts } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3001'
+const APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3001').trim()
 const REDIRECT_URI = `${APP_URL}/api/auth/meta/callback`
 
 async function exchangeCodeForToken(code: string): Promise<{
@@ -12,8 +12,8 @@ async function exchangeCodeForToken(code: string): Promise<{
   token_type: string
 }> {
   const url = new URL('https://graph.facebook.com/v22.0/oauth/access_token')
-  url.searchParams.set('client_id', process.env.INSTAGRAM_APP_ID!)
-  url.searchParams.set('client_secret', process.env.INSTAGRAM_APP_SECRET!)
+  url.searchParams.set('client_id', process.env.INSTAGRAM_APP_ID!.trim())
+  url.searchParams.set('client_secret', process.env.INSTAGRAM_APP_SECRET!.trim())
   url.searchParams.set('redirect_uri', REDIRECT_URI)
   url.searchParams.set('code', code)
 
@@ -31,8 +31,8 @@ async function getLongLivedToken(shortToken: string): Promise<{
 }> {
   const url = new URL('https://graph.facebook.com/v22.0/oauth/access_token')
   url.searchParams.set('grant_type', 'fb_exchange_token')
-  url.searchParams.set('client_id', process.env.INSTAGRAM_APP_ID!)
-  url.searchParams.set('client_secret', process.env.INSTAGRAM_APP_SECRET!)
+  url.searchParams.set('client_id', process.env.INSTAGRAM_APP_ID!.trim())
+  url.searchParams.set('client_secret', process.env.INSTAGRAM_APP_SECRET!.trim())
   url.searchParams.set('fb_exchange_token', shortToken)
 
   const res = await fetch(url.toString())

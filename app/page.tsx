@@ -9,6 +9,9 @@ import Link from 'next/link'
 export default function Home() {
   const [platform, setPlatform] = useState<'instagram' | 'facebook'>('instagram')
   const [input, setInput] = useState('')
+  const [postingId, setPostingId] = useState<string | null>(null)
+  const [imageUrl, setImageUrl] = useState('')
+  const [postResult, setPostResult] = useState<Record<string, { ok: boolean; msg: string }>>({})
 
   const transport = useMemo(
     () => new DefaultChatTransport({ api: '/api/chat', body: { platform } }),
@@ -24,6 +27,28 @@ export default function Home() {
     if (!input.trim()) return
     sendMessage({ role: 'user', parts: [{ type: 'text', text: input }] })
     setInput('')
+  }
+
+  async function handlePost(messageId: string, caption: string) {
+    setPostingId(messageId)
+    try {
+      const res = await fetch('/api/post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ platform, caption, imageUrl: imageUrl || undefined }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setPostResult((prev) => ({ ...prev, [messageId]: { ok: true, msg: '投稿しました！' } }))
+        setImageUrl('')
+      } else {
+        setPostResult((prev) => ({ ...prev, [messageId]: { ok: false, msg: data.error ?? '投稿に失敗しました' } }))
+      }
+    } catch {
+      setPostResult((prev) => ({ ...prev, [messageId]: { ok: false, msg: 'ネットワークエラー' } }))
+    } finally {
+      setPostingId(null)
+    }
   }
 
   return (
@@ -53,26 +78,53 @@ export default function Home() {
             <p className="text-sm">例：「ダイエット食事管理の無料チェックリストを配布したい」</p>
           </div>
         )}
-        {messages.map((m) => (
-          <div
-            key={m.id}
-            className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            <div
-              className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm whitespace-pre-wrap ${
-                m.role === 'user'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-white text-gray-800 border shadow-sm'
-              }`}
-            >
-              {m.parts
-                .filter((p) => p.type === 'text')
-                .map((p, i) => (
-                  <span key={i}>{(p as { type: 'text'; text: string }).text}</span>
-                ))}
+        {messages.map((m) => {
+          const text = m.parts
+            .filter((p) => p.type === 'text')
+            .map((p) => (p as { type: 'text'; text: string }).text)
+            .join('')
+          const result = postResult[m.id]
+
+          return (
+            <div key={m.id} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
+              <div
+                className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm whitespace-pre-wrap ${
+                  m.role === 'user'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-white text-gray-800 border shadow-sm'
+                }`}
+              >
+                {text}
+              </div>
+
+              {m.role === 'assistant' && text && (
+                <div className="mt-2 max-w-[80%] w-full space-y-2">
+                  {platform === 'instagram' && (
+                    <input
+                      type="url"
+                      placeholder="画像URL（Instagram投稿に必要）"
+                      value={imageUrl}
+                      onChange={(e) => setImageUrl(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-lg text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                    />
+                  )}
+                  <button
+                    onClick={() => handlePost(m.id, text)}
+                    disabled={postingId === m.id || (platform === 'instagram' && !imageUrl)}
+                    className="px-4 py-1.5 bg-green-500 text-white rounded-lg text-xs font-medium hover:bg-green-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {postingId === m.id ? '投稿中...' : `${platform === 'instagram' ? 'Instagram' : 'Facebook'}に投稿する`}
+                  </button>
+                  {result && (
+                    <p className={`text-xs ${result.ok ? 'text-green-600' : 'text-red-500'}`}>
+                      {result.msg}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          )
+        })}
         {isLoading && (
           <div className="flex justify-start">
             <div className="bg-white border shadow-sm px-4 py-3 rounded-2xl text-sm text-gray-400">

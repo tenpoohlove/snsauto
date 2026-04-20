@@ -1,0 +1,38 @@
+{
+  "version": "0.1.0",
+  "id": "ba9d45ff-f6b6-43e3-a9b1-018f6a3fdcd4",
+  "timestamp": "2026-04-20T06:54:12.371Z",
+  "files": [
+    {
+      "path": "scripts\\link-instagram.js",
+      "conversations": [
+        {
+          "contributor_type": "ai",
+          "model": "anthropic/claude-opus-4-5-20251101",
+          "ranges": [
+            {
+              "start_line": 1,
+              "end_line": -1
+            }
+          ],
+          "description": "Write: file creation/overwrite"
+        }
+      ]
+    }
+  ],
+  "tool": {
+    "name": "taisun-agent",
+    "version": "2.10.1"
+  },
+  "metadata": {
+    "dev.taisun": {
+      "hook": "agent-trace-capture",
+      "tool_used": "Write"
+    }
+  },
+  "vcs": {
+    "type": "git",
+    "commit": "6bfcab3b60ee578cd8405aa330537f2ae6940e72",
+    "branch": "master"
+  }
+}
