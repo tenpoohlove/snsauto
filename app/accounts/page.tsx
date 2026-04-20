@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { UserButton } from '@clerk/nextjs'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -15,13 +15,35 @@ type Account = {
   createdAt: string
 }
 
+function Alerts() {
+  const searchParams = useSearchParams()
+  const success = searchParams.get('success')
+  const error = searchParams.get('error')
+
+  if (success === 'connected') {
+    return (
+      <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-sm">
+        アカウントを連携しました！
+      </div>
+    )
+  }
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
+        {error === 'access_denied' && 'アクセスが拒否されました。'}
+        {error === 'invalid_state' && 'セッションが無効です。もう一度お試しください。'}
+        {error === 'oauth_failed' && 'OAuth認証に失敗しました。Meta App IDとSecretを確認してください。'}
+        {!['access_denied', 'invalid_state', 'oauth_failed'].includes(error) && 'エラーが発生しました。'}
+      </div>
+    )
+  }
+  return null
+}
+
 export default function AccountsPage() {
   const [accounts, setAccounts] = useState<Account[]>([])
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState<string | null>(null)
-  const searchParams = useSearchParams()
-  const success = searchParams.get('success')
-  const error = searchParams.get('error')
 
   async function fetchAccounts() {
     setLoading(true)
@@ -55,21 +77,10 @@ export default function AccountsPage() {
       </header>
 
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
-        {success === 'connected' && (
-          <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-sm">
-            アカウントを連携しました！
-          </div>
-        )}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
-            {error === 'access_denied' && 'アクセスが拒否されました。'}
-            {error === 'invalid_state' && 'セッションが無効です。もう一度お試しください。'}
-            {error === 'oauth_failed' && 'OAuth認証に失敗しました。Meta App IDとSecretを確認してください。'}
-            {!['access_denied', 'invalid_state', 'oauth_failed'].includes(error) && 'エラーが発生しました。'}
-          </div>
-        )}
+        <Suspense fallback={null}>
+          <Alerts />
+        </Suspense>
 
-        {/* Connect button */}
         <div className="bg-white border rounded-xl p-6">
           <h2 className="font-semibold text-gray-800 mb-1">Facebookでログインして連携</h2>
           <p className="text-sm text-gray-500 mb-4">
@@ -87,20 +98,8 @@ export default function AccountsPage() {
           <p className="text-sm text-gray-400 text-center py-8">読み込み中...</p>
         ) : (
           <>
-            <AccountList
-              title="Instagram"
-              icon="📸"
-              accounts={instagram}
-              deleting={deleting}
-              onDisconnect={disconnect}
-            />
-            <AccountList
-              title="Facebook ページ"
-              icon="📘"
-              accounts={facebook}
-              deleting={deleting}
-              onDisconnect={disconnect}
-            />
+            <AccountList title="Instagram" icon="📸" accounts={instagram} deleting={deleting} onDisconnect={disconnect} />
+            <AccountList title="Facebook" icon="📘" accounts={facebook} deleting={deleting} onDisconnect={disconnect} />
           </>
         )}
       </div>
@@ -108,18 +107,8 @@ export default function AccountsPage() {
   )
 }
 
-function AccountList({
-  title,
-  icon,
-  accounts,
-  deleting,
-  onDisconnect,
-}: {
-  title: string
-  icon: string
-  accounts: Account[]
-  deleting: string | null
-  onDisconnect: (id: string) => void
+function AccountList({ title, icon, accounts, deleting, onDisconnect }: {
+  title: string; icon: string; accounts: Account[]; deleting: string | null; onDisconnect: (id: string) => void
 }) {
   return (
     <div className="bg-white border rounded-xl overflow-hidden">
@@ -136,16 +125,10 @@ function AccountList({
                 <p className="text-sm font-medium text-gray-800">@{a.accountName}</p>
                 <p className="text-xs text-gray-400">
                   ID: {a.accountId}
-                  {a.tokenExpiresAt && (
-                    <> · トークン期限: {new Date(a.tokenExpiresAt).toLocaleDateString('ja-JP')}</>
-                  )}
+                  {a.tokenExpiresAt && <> · トークン期限: {new Date(a.tokenExpiresAt).toLocaleDateString('ja-JP')}</>}
                 </p>
               </div>
-              <button
-                onClick={() => onDisconnect(a.id)}
-                disabled={deleting === a.id}
-                className="text-xs text-red-500 hover:text-red-700 disabled:opacity-40"
-              >
+              <button onClick={() => onDisconnect(a.id)} disabled={deleting === a.id} className="text-xs text-red-500 hover:text-red-700 disabled:opacity-40">
                 {deleting === a.id ? '削除中...' : '連携解除'}
               </button>
             </li>
