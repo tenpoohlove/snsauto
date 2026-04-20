@@ -89,7 +89,7 @@ export async function GET(req: NextRequest) {
   try {
     const { access_token: shortToken } = await exchangeCodeForToken(code)
     const { access_token: longToken, expires_in } = await getLongLivedToken(shortToken)
-    const expiresAt = new Date(Date.now() + expires_in * 1000)
+    const expiresAt = new Date(Date.now() + (expires_in ?? 5184000) * 1000) // fallback: 60 days
 
     // Get Facebook user profile
     const meRes = await fetch(
