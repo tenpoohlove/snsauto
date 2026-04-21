@@ -11,11 +11,11 @@ export async function POST(req: Request) {
   const { userId } = await auth()
   if (!userId) return new Response('Unauthorized', { status: 401 })
 
-  const { messages, platform } = await req.json()
+  const { messages, platform, model: bodyModel } = await req.json()
 
   const rows = await db.select().from(userSettings).where(eq(userSettings.userId, userId)).limit(1)
   const userApiKey = rows[0]?.anthropicApiKey
-  const selectedModel = rows[0]?.model ?? 'claude-haiku-4-5-20251001'
+  const selectedModel = bodyModel ?? rows[0]?.model ?? 'claude-haiku-4-5-20251001'
   const anthropic = createAnthropic({ apiKey: userApiKey || process.env.ANTHROPIC_API_KEY! })
 
   const systemPrompt = `あなたはSNSマーケティングの専門家です。

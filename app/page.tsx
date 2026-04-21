@@ -3,19 +3,33 @@
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import { UserButton } from '@clerk/nextjs'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
+
+const MODEL_LABELS: Record<string, string> = {
+  'claude-haiku-4-5-20251001': 'Haiku（最安）',
+  'claude-sonnet-4-6': 'Sonnet（バランス）',
+  'claude-opus-4-7': 'Opus（最高品質）',
+}
 
 export default function Home() {
   const [platform, setPlatform] = useState<'instagram' | 'facebook'>('instagram')
+  const [model, setModel] = useState('claude-haiku-4-5-20251001')
   const [input, setInput] = useState('')
   const [postingId, setPostingId] = useState<string | null>(null)
   const [imageUrl, setImageUrl] = useState('')
   const [postResult, setPostResult] = useState<Record<string, { ok: boolean; msg: string }>>({})
 
+  useEffect(() => {
+    fetch('/api/settings')
+      .then((r) => r.json())
+      .then((d) => { if (d.model) setModel(d.model) })
+      .catch(() => {})
+  }, [])
+
   const transport = useMemo(
-    () => new DefaultChatTransport({ api: '/api/chat', body: { platform } }),
-    [platform],
+    () => new DefaultChatTransport({ api: '/api/chat', body: { platform, model } }),
+    [platform, model],
   )
 
   const { messages, sendMessage, status } = useChat({ transport })
@@ -27,6 +41,15 @@ export default function Home() {
     if (!input.trim()) return
     sendMessage({ role: 'user', parts: [{ type: 'text', text: input }] })
     setInput('')
+  }
+
+  async function handleModelChange(newModel: string) {
+    setModel(newModel)
+    await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: newModel }),
+    }).catch(() => {})
   }
 
   async function handlePost(messageId: string, caption: string) {
@@ -55,7 +78,7 @@ export default function Home() {
     <div className="flex flex-col h-screen bg-gray-50">
       <header className="flex items-center justify-between px-6 py-4 bg-white border-b">
         <h1 className="text-xl font-bold text-gray-800">SNS自動投稿</h1>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <select
             value={platform}
             onChange={(e) => setPlatform(e.target.value as 'instagram' | 'facebook')}
@@ -63,6 +86,15 @@ export default function Home() {
           >
             <option value="instagram">Instagram</option>
             <option value="facebook">Facebook</option>
+          </select>
+          <select
+            value={model}
+            onChange={(e) => handleModelChange(e.target.value)}
+            className="px-3 py-1.5 border rounded-lg text-sm"
+          >
+            {Object.entries(MODEL_LABELS).map(([v, l]) => (
+              <option key={v} value={v}>{l}</option>
+            ))}
           </select>
           <Link href="/accounts" className="text-sm text-gray-500 hover:text-gray-800">
             アカウント連携
