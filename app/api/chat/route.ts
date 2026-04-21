@@ -15,6 +15,7 @@ export async function POST(req: Request) {
 
   const rows = await db.select().from(userSettings).where(eq(userSettings.userId, userId)).limit(1)
   const userApiKey = rows[0]?.anthropicApiKey
+  const selectedModel = rows[0]?.model ?? 'claude-haiku-4-5-20251001'
   const anthropic = createAnthropic({ apiKey: userApiKey || process.env.ANTHROPIC_API_KEY! })
 
   const systemPrompt = `あなたはSNSマーケティングの専門家です。
@@ -45,7 +46,7 @@ export async function POST(req: Request) {
     console.log('[chat] coreMessages:', JSON.stringify(coreMessages).slice(0, 200))
 
     const result = streamText({
-      model: anthropic('claude-haiku-4-5-20251001'),
+      model: anthropic(selectedModel),
       system: systemPrompt,
       messages: coreMessages,
       onError: (e) => console.error('[chat] streamText error:', e),

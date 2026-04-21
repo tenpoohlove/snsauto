@@ -39,6 +39,7 @@ export const userSettings = pgTable('user_settings', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: text('user_id').notNull().unique(),
   anthropicApiKey: text('anthropic_api_key'),
+  model: text('model', { enum: ['claude-haiku-4-5-20251001', 'claude-sonnet-4-6', 'claude-opus-4-7'] }).default('claude-haiku-4-5-20251001'),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 })
 
