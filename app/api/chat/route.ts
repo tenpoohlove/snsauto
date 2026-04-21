@@ -1,6 +1,9 @@
-import { anthropic } from '@ai-sdk/anthropic'
+import { createAnthropic } from '@ai-sdk/anthropic'
 import { streamText, convertToModelMessages } from 'ai'
 import { auth } from '@clerk/nextjs/server'
+import { db } from '@/lib/db'
+import { userSettings } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 
 export const maxDuration = 60
 
@@ -9,6 +12,10 @@ export async function POST(req: Request) {
   if (!userId) return new Response('Unauthorized', { status: 401 })
 
   const { messages, platform } = await req.json()
+
+  const rows = await db.select().from(userSettings).where(eq(userSettings.userId, userId)).limit(1)
+  const userApiKey = rows[0]?.anthropicApiKey
+  const anthropic = createAnthropic({ apiKey: userApiKey || process.env.ANTHROPIC_API_KEY! })
 
   const systemPrompt = `あなたはSNSマーケティングの専門家です。
 ユーザーが入力したテーマに基づいて、以下を行います：
@@ -38,7 +45,7 @@ export async function POST(req: Request) {
     console.log('[chat] coreMessages:', JSON.stringify(coreMessages).slice(0, 200))
 
     const result = streamText({
-      model: anthropic('claude-sonnet-4-6'),
+      model: anthropic('claude-haiku-4-5-20251001'),
       system: systemPrompt,
       messages: coreMessages,
       onError: (e) => console.error('[chat] streamText error:', e),

@@ -35,6 +35,13 @@ export const postContents = pgTable('post_contents', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 })
 
+export const userSettings = pgTable('user_settings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id').notNull().unique(),
+  anthropicApiKey: text('anthropic_api_key'),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+})
+
 export const scheduledPosts = pgTable('scheduled_posts', {
   id: uuid('id').primaryKey().defaultRandom(),
   postContentId: uuid('post_content_id').references(() => postContents.id).notNull(),

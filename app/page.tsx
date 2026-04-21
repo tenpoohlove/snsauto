@@ -67,6 +67,9 @@ export default function Home() {
           <Link href="/accounts" className="text-sm text-gray-500 hover:text-gray-800">
             アカウント連携
           </Link>
+          <Link href="/settings" className="text-sm text-gray-500 hover:text-gray-800">
+            設定
+          </Link>
           <UserButton />
         </div>
       </header>

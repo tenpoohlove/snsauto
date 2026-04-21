@@ -1,0 +1,38 @@
+{
+  "version": "0.1.0",
+  "id": "1eff5600-2c42-4577-9df8-ab018440b164",
+  "timestamp": "2026-04-20T21:55:23.339Z",
+  "files": [
+    {
+      "path": "app\\api\\auth\\meta\\callback\\route.ts",
+      "conversations": [
+        {
+          "contributor_type": "ai",
+          "model": "anthropic/claude-opus-4-5-20251101",
+          "ranges": [
+            {
+              "start_line": 1,
+              "end_line": -1
+            }
+          ],
+          "description": "Edit: text replacement"
+        }
+      ]
+    }
+  ],
+  "tool": {
+    "name": "taisun-agent",
+    "version": "2.10.1"
+  },
+  "metadata": {
+    "dev.taisun": {
+      "hook": "agent-trace-capture",
+      "tool_used": "Edit"
+    }
+  },
+  "vcs": {
+    "type": "git",
+    "commit": "a30265967b290df42926d78a6a0f4a7b2930ea0a",
+    "branch": "master"
+  }
+}
