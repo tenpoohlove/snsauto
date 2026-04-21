@@ -31,11 +31,22 @@ export async function POST(req: Request) {
 ユーザーの無料特典（リードマグネット）を宣伝する投稿を作成することが多いです。
 フォロワーにDMで特典を受け取ってもらえるよう誘導する文章を心がけてください。`
 
-  const result = streamText({
-    model: anthropic('claude-sonnet-4-6'),
-    system: systemPrompt,
-    messages: await convertToModelMessages(messages),
-  })
+  console.log('[chat] messages count:', messages?.length, 'platform:', platform)
 
-  return result.toUIMessageStreamResponse()
+  try {
+    const coreMessages = await convertToModelMessages(messages)
+    console.log('[chat] coreMessages:', JSON.stringify(coreMessages).slice(0, 200))
+
+    const result = streamText({
+      model: anthropic('claude-sonnet-4-6'),
+      system: systemPrompt,
+      messages: coreMessages,
+      onError: (e) => console.error('[chat] streamText error:', e),
+    })
+
+    return result.toUIMessageStreamResponse()
+  } catch (e) {
+    console.error('[chat] caught error:', e)
+    return new Response(String(e), { status: 500 })
+  }
 }
