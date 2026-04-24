@@ -123,7 +123,13 @@ export async function GET(req: NextRequest) {
 
     // Get Facebook Pages and linked Instagram Business Accounts
     const pages = await getPages(longToken)
-    console.log(`Meta OAuth: found ${pages.length} pages for user ${userId}`)
+    console.log(`Meta OAuth: found ${pages.length} pages for user ${userId}`, JSON.stringify(pages))
+
+    if (pages.length === 0) {
+      const response = NextResponse.redirect(`${APP_URL}/accounts?success=connected&debug_pages=0`)
+      response.cookies.delete('meta_oauth_state')
+      return response
+    }
 
     for (const page of pages) {
       await db
