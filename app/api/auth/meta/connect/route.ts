@@ -29,6 +29,7 @@ export async function GET(req: NextRequest) {
   url.searchParams.set('scope', SCOPES)
   url.searchParams.set('state', state)
   url.searchParams.set('response_type', 'code')
+  url.searchParams.set('auth_type', 'rerequest')
 
   const response = NextResponse.redirect(url.toString())
   // Store state in cookie for verification in callback
